@@ -1,4 +1,5 @@
 import os
+import json
 import random
 from ast import literal_eval
 from configparser import ConfigParser
@@ -19,14 +20,20 @@ def set_seed(seed=0):
 
 class Config(object):
     def __init__(self, conf=None, **kwargs):
-        super(Config, self).__init__()
+        super().__init__()
 
-        config = ConfigParser()
-        config.read(conf or [])
-        self.update({**dict((name, literal_eval(value))
-                            for section in config.sections()
-                            for name, value in config.items(section)),
-                     **kwargs})
+        if conf.endswith('.json'):
+            config = json.loads(open(conf).read())
+            self.update(config)
+        elif conf.endswith('.ini'):
+            config = ConfigParser()
+            config.read(conf or [])
+            self.update({**dict((name, literal_eval(value))
+                                for section in config.sections()
+                                for name, value in config.items(section)),
+                        **kwargs})
+        else:
+            raise ValueError('Not supported config file')
 
     def __repr__(self):
         s = line = "-" * 20 + "-+-" + "-" * 30 + "\n"
